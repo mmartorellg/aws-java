@@ -1,37 +1,38 @@
 version: 0.2
-env:
-  variables:
-    CONTAINER_NAME: aws-test-sonar    # debe coincidir con containerDefinitions[].name de tu Task Definition
-  # parameter-store:
-  # Opcional: si guardas secretos en SSM
-  # DB_PASSWORD: "/miapp/prod/db_password"
-  git-credential-helper: yes      # permite que 'git' use credenciales del job
+
 phases:
-  install:
-    commands:
-      - echo "==> Instalando dependencias de build"
-      - aws --version             # diagnóstico
-      - docker --version          # diagnóstico
   pre_build:
     commands:
-      - echo "==> Autenticando en ECR"
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-      - REGION=${AWS_DEFAULT_REGION:-$AWS_REGION}
-      - ECR_URI="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
-      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_URI
-      - echo "==> Resolviendo tags"
-      - COMMIT_ID=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)   # tag corto del commit
-      - IMAGE_REPO_NAME=${IMAGE_REPO_NAME:-aws-test-sonar-repo}   # pon el nombre de tu repo ECR
-      - IMAGE_TAG=${IMAGE_TAG:-$COMMIT_ID}  # puedes usar también 'develop-<fecha>'
+      - mvn clean install
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - REPOSITORY_URI=178934116267.dkr.ecr.eu-west-1.amazonaws.com/aws-java-registry
+      - aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
   build:
     commands:
-      - docker build -t $ECR_URI/$IMAGE_REPO_NAME:$IMAGE_TAG .
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
-      - echo "==> Empujando imagen a ECR"
-      - docker push $ECR_URI/$IMAGE_REPO_NAME:$IMAGE_TAG
-      - echo "==> Generando imagedefinitions.json para ECS Deploy"
-      - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$ECR_URI/$IMAGE_REPO_NAME:$IMAGE_TAG" > imagedefinitions.json
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"aws-java","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo Writing image definitions file...
+      # add your container name
+      - DOCKER_CONTAINER_NAME=aws-java-registry
+      - printf '[{"name":"%s","imageUri":"%s"}]' $DOCKER_CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo $DOCKER_CONTAINER_NAME
+      - echo printing imagedefinitions.json
+      - cat imagedefinitions.json
+
 artifacts:
   files:
     - imagedefinitions.json
+    - target/aws-java-0.0.1-SNAPSHOT.jar
