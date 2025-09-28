@@ -12,4 +12,19 @@ class DummyControllerTest {
         String result = dummyController.dummy();
         assertEquals("Hello World!", result);
     }
+
+    @Test
+    void dummyPost() {
+        DummyController dummyController = new DummyController();
+        String result = dummyController.dummyPost();
+        assertEquals("Hello World from Post!", result);
+    }
+
+    @Test
+    void dummyWithPathVariable() {
+        DummyController dummyController = new DummyController();
+        String name = "Alice";
+        String result = dummyController.dummyWithPathVariable(name);
+        assertEquals("Hello Alice", result);
+    }
 }
