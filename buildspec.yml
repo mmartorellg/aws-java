@@ -3,6 +3,8 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      - echo Testing connectivity to SonarQube...
+      - curl -v http://54.216.77.177:9000/api/system/status || echo "Connection failed"
       - mvn clean install
       - echo Logging in to Amazon ECR...
       - aws --version
