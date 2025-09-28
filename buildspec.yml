@@ -3,9 +3,10 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo Testing connectivity to SonarQube...
-      - curl -v http://54.216.77.177:9000/api/system/status || echo "Connection failed"
-      - mvn clean install
+      - echo Setting SonarQube configuration...
+      - SONAR_URL=http://54.216.77.177:9000
+      - SONAR_TOKEN=squ_374fb3a3ac6eeadd098afade4097744444686626
+      - SONAR_PROJECT_KEY=aws-java-project-key
       - echo Logging in to Amazon ECR...
       - aws --version
       - REPOSITORY_URI=178934116267.dkr.ecr.eu-west-1.amazonaws.com/aws-java-registry
@@ -15,12 +16,23 @@ phases:
   build:
     commands:
       - echo Build started on `date`
+      - echo Running tests and SonarQube analysis...
+      - mvn clean verify sonar:sonar -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_TOKEN
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
+      - echo Checking SonarQube Quality Gate...
+      - |
+        QUALITY_GATE_STATUS=$(curl -s -u $SONAR_TOKEN: "$SONAR_URL/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY" | python3 -c "import sys, json; print(json.load(sys.stdin)['projectStatus']['status'])")
+        echo "Quality Gate Status: $QUALITY_GATE_STATUS"
+        if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
+          echo "Quality Gate failed! Build will be marked as failed."
+          exit 1
+        fi
+        echo "Quality Gate passed! Continuing with deployment..."
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
