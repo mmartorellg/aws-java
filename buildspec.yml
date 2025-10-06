@@ -4,7 +4,7 @@ phases:
   pre_build:
     commands:
       - echo Setting SonarQube configuration...
-      - SONAR_URL=http://54.171.245.10:9000
+      - SONAR_URL=http://3.249.117.152:9000
       - SONAR_TOKEN=squ_d894659922538b5363655f9aa72fb3659567334a
       - SONAR_PROJECT_KEY=aws-java-project-key
       - echo Logging in to Amazon ECR...
