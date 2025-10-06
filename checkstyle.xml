@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="error"/>
+
+    <module name="TreeWalker">
+
+        <!-- PAQUETES: minúsculas -->
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+            <message key="name.invalidPattern"
+                     value="El nombre del paquete ''{0}'' debe estar en minúsculas sin guiones bajos."/>
+        </module>
+
+        <!-- CLASES: PascalCase -->
+        <module name="TypeName">
+            <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern"
+                     value="El nombre de clase ''{0}'' debe usar PascalCase."/>
+        </module>
+
+        <!-- MÉTODOS: camelCase -->
+        <module name="MethodName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern"
+                     value="El nombre del método ''{0}'' debe usar camelCase."/>
+        </module>
+
+        <!-- VARIABLES y PARÁMETROS: camelCase -->
+        <module name="LocalVariableName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern"
+                     value="La variable local ''{0}'' debe usar camelCase."/>
+        </module>
+
+        <module name="ParameterName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern"
+                     value="El parámetro ''{0}'' debe usar camelCase."/>
+        </module>
+
+        <module name="MemberName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern"
+                     value="El atributo ''{0}'' debe usar camelCase."/>
+        </module>
+
+        <!-- CONSTANTES: MAYÚSCULAS con guiones bajos -->
+        <module name="ConstantName">
+            <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+            <message key="name.invalidPattern"
+                     value="La constante ''{0}'' debe estar en MAYÚSCULAS con guiones bajos."/>
+        </module>
+
+        <!-- INTERFACES: PascalCase -->
+        <module name="InterfaceTypeParameterName">
+            <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+
+        <!-- Longitud máxima de nombres (30 caracteres) -->
+        <module name="MethodLength">
+            <property name="max" value="150"/>
+        </module>
+
+        <!-- Evitar abreviaturas -->
+        <module name="AbbreviationAsWordInName">
+            <property name="allowedAbbreviationLength" value="3"/>
+            <property name="ignoreFinal" value="false"/>
+        </module>
+
+    </module>
+
+</module>
